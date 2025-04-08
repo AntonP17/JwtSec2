@@ -5,10 +5,7 @@ import com.example.jwtsecurity2.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin")
@@ -19,8 +16,8 @@ public class Admin {
     private AuthService authService;
 
     @PostMapping("/unlock")
-    public ResponseEntity<ReqRes> unlockUser(@RequestParam String email) {
-        return ResponseEntity.ok(authService.unlockUser(email));
+    public ResponseEntity<ReqRes> unlockUser(@RequestBody ReqRes email) {
+        return ResponseEntity.ok(authService.unlockUser(email.getEmail()));
     }
 
     @PostMapping("/users")
