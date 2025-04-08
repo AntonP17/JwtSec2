@@ -2,6 +2,7 @@ package com.example.jwtsecurity2.dto;
 
 import com.example.jwtsecurity2.entity.OurUsers;
 import com.example.jwtsecurity2.entity.Product;
+import com.example.jwtsecurity2.entity.Role;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
@@ -20,7 +21,7 @@ public class ReqRes {
     private String expirationTime;
     private String name;
     private String email;
-    private String role;
+    private Role role;
     private String password;
     private List<Product> products;
     private OurUsers ourUsers;

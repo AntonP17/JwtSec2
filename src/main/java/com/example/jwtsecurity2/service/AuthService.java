@@ -10,6 +10,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class AuthService {
@@ -22,6 +24,9 @@ public class AuthService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    private final Map<String, Integer> loginAttemptsCache = new ConcurrentHashMap<>();
+    private static final int MAX_ATTEMPTS = 5;
 
     public ReqRes signUp(ReqRes registrationRequest){
         ReqRes resp = new ReqRes();
@@ -43,13 +48,13 @@ public class AuthService {
         return resp;
     }
 
-    public ReqRes signIn(ReqRes signinRequest){
+    public ReqRes signIn(ReqRes signinRequest) {
         ReqRes response = new ReqRes();
 
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signinRequest.getEmail(),signinRequest.getPassword()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signinRequest.getEmail(), signinRequest.getPassword()));
             var user = ourUserRepo.findByEmail(signinRequest.getEmail()).orElseThrow();
-            System.out.println("USER IS: "+ user);
+            System.out.println("USER IS: " + user);
             var jwt = jwtUtils.generateToken(user);
             var refreshToken = jwtUtils.generateRefreshToken(new HashMap<>(), user);
             response.setStatusCode(200);
@@ -57,10 +62,36 @@ public class AuthService {
             response.setRefreshToken(refreshToken);
             response.setExpirationTime("24Hr");
             response.setMessage("Successfully Signed In");
-        }catch (Exception e){
+
+            loginAttemptsCache.remove(signinRequest.getEmail()); // Clear login attempts for the user
+        } catch (Exception e) {
             response.setStatusCode(500);
             response.setError(e.getMessage());
+
+            String email = signinRequest.getEmail();
+            int attempts = loginAttemptsCache.getOrDefault(email, 0) + 1;
+            loginAttemptsCache.put(email, attempts);
+
+            if (attempts >= MAX_ATTEMPTS) {
+                OurUsers user = ourUserRepo.findByEmail(email).orElseThrow();
+                user.setAccountNonLocked(false);
+                ourUserRepo.save(user);
+                response.setMessage("Account locked due to 5 failed attempts");
+            }
+            return response;
         }
+        return response;
+    }
+
+    public ReqRes unlockUser(String email) {
+        OurUsers user = ourUserRepo.findByEmail(email).orElseThrow();
+        user.setAccountNonLocked(true);
+        ourUserRepo.save(user);
+        loginAttemptsCache.remove(email); // Сбрасываем счетчик
+
+        ReqRes response = new ReqRes();
+        response.setStatusCode(200);
+        response.setMessage("Account unlocked");
         return response;
     }
 

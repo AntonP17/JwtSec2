@@ -6,6 +6,7 @@ import com.example.jwtsecurity2.entity.Product;
 import com.example.jwtsecurity2.repository.ProductRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +25,8 @@ public class AdminUsers {
         return ResponseEntity.ok(productRepo.findAll());
     }
 
-    @PostMapping("/admin/saveproduct")
+    @PreAuthorize("hasRole('MODERATOR')")
+    @PostMapping("/moderator/saveproduct")
     public ResponseEntity<Object> signUp(@RequestBody ReqRes productRequest){
         Product productToSave = new Product();
         productToSave.setName(productRequest.getName());
@@ -32,12 +34,14 @@ public class AdminUsers {
     }
 
 
+    @PreAuthorize("hasRole('USER')")
     @GetMapping("/user/alone")
     public ResponseEntity<Object> userAlone(){
         return ResponseEntity.ok("USers alone can access this ApI only");
     }
 
-    @GetMapping("/adminuser/both")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @GetMapping("/superadmin/both")
     public ResponseEntity<Object> bothAdminaAndUsersApi(){
         return ResponseEntity.ok("Both Admin and Users Can  access the api");
     }

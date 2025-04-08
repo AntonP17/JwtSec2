@@ -17,12 +17,20 @@ public class OurUsers implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
     private String email;
     private String password;
-    private String role;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @Column(nullable = false)
+    private boolean isAccountNonLocked = true;
+
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role));
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
 
@@ -38,7 +46,7 @@ public class OurUsers implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return isAccountNonLocked;
     }
 
     @Override
