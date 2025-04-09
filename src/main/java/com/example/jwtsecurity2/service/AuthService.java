@@ -1,6 +1,13 @@
 package com.example.jwtsecurity2.service;
 
-import com.example.jwtsecurity2.dto.ReqRes;
+
+import com.example.jwtsecurity2.dto.request.RefreshTokenDTO;
+import com.example.jwtsecurity2.dto.request.SignInRequest;
+import com.example.jwtsecurity2.dto.request.SignUpRequest;
+import com.example.jwtsecurity2.dto.response.RefreshTokenResponse;
+import com.example.jwtsecurity2.dto.response.SignInResponse;
+import com.example.jwtsecurity2.dto.response.SignUpResponse;
+import com.example.jwtsecurity2.dto.response.UserUnlockResponse;
 import com.example.jwtsecurity2.entity.OurUsers;
 import com.example.jwtsecurity2.repository.OurUserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,8 +35,8 @@ public class AuthService {
     private final Map<String, Integer> loginAttemptsCache = new ConcurrentHashMap<>();
     private static final int MAX_ATTEMPTS = 5;
 
-    public ReqRes signUp(ReqRes registrationRequest){
-        ReqRes resp = new ReqRes();
+    public SignUpResponse signUp(SignUpRequest registrationRequest){
+        SignUpResponse resp = new SignUpResponse();
         try {
             OurUsers ourUsers = new OurUsers();
             ourUsers.setEmail(registrationRequest.getEmail());
@@ -37,7 +44,7 @@ public class AuthService {
             ourUsers.setRole(registrationRequest.getRole());
             OurUsers ourUserResult = ourUserRepo.save(ourUsers);
             if (ourUserResult != null && ourUserResult.getId()>0) {
-                resp.setOurUsers(ourUserResult);
+                resp.setEmail(ourUserResult.getEmail());
                 resp.setMessage("User Saved Successfully");
                 resp.setStatusCode(200);
             }
@@ -48,11 +55,12 @@ public class AuthService {
         return resp;
     }
 
-    public ReqRes signIn(ReqRes signinRequest) {
-        ReqRes response = new ReqRes();
+    public SignInResponse signIn(SignInRequest signinRequest) {
+        SignInResponse response = new SignInResponse();
 
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signinRequest.getEmail(), signinRequest.getPassword()));
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(signinRequest.getEmail(),
+                    signinRequest.getPassword()));
             var user = ourUserRepo.findByEmail(signinRequest.getEmail()).orElseThrow();
             System.out.println("USER IS: " + user);
             var jwt = jwtUtils.generateToken(user);
@@ -83,20 +91,20 @@ public class AuthService {
         return response;
     }
 
-    public ReqRes unlockUser(String email) {
+    public UserUnlockResponse unlockUser(String email) {
         OurUsers user = ourUserRepo.findByEmail(email).orElseThrow();
         user.setAccountNonLocked(true);
         ourUserRepo.save(user);
         loginAttemptsCache.remove(email); // Сбрасываем счетчик
 
-        ReqRes response = new ReqRes();
+        UserUnlockResponse response = new UserUnlockResponse();
         response.setStatusCode(200);
         response.setMessage("Account unlocked");
         return response;
     }
 
-    public ReqRes refreshToken(ReqRes refreshTokenReqiest){
-        ReqRes response = new ReqRes();
+    public RefreshTokenResponse refreshToken(RefreshTokenDTO refreshTokenReqiest){
+        RefreshTokenResponse response = new RefreshTokenResponse();
         String ourEmail = jwtUtils.extractUsername(refreshTokenReqiest.getToken());
         OurUsers users = ourUserRepo.findByEmail(ourEmail).orElseThrow();
         if (jwtUtils.isTokenValid(refreshTokenReqiest.getToken(), users)) {

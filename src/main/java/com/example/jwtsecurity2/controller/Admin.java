@@ -1,6 +1,8 @@
 package com.example.jwtsecurity2.controller;
 
-import com.example.jwtsecurity2.dto.ReqRes;
+
+import com.example.jwtsecurity2.dto.request.LockedUser;
+import com.example.jwtsecurity2.dto.response.UserUnlockResponse;
 import com.example.jwtsecurity2.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,17 +18,12 @@ public class Admin {
     private AuthService authService;
 
     @PostMapping("/unlock")
-    public ResponseEntity<ReqRes> unlockUser(@RequestBody ReqRes email) {
+    public ResponseEntity<UserUnlockResponse> unlockUser(@RequestBody LockedUser email) {
         return ResponseEntity.ok(authService.unlockUser(email.getEmail()));
     }
 
     @PostMapping("/users")
     public ResponseEntity<String> getAllUsers() {
         return ResponseEntity.ok("Users list");
-    }
-
-    @PostMapping("/changeRole")
-    public ResponseEntity<String> changeRole(@RequestParam String email, @RequestParam String role) {
-        return ResponseEntity.ok("Role changed");
     }
 }

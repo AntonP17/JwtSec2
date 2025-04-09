@@ -1,0 +1,4 @@
+package com.example.jwtsecurity2.dto.response;
+
+public class ProductResponse {
+}

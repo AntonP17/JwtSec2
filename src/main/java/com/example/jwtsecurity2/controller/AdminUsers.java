@@ -1,7 +1,9 @@
 package com.example.jwtsecurity2.controller;
 
 
-import com.example.jwtsecurity2.dto.ReqRes;
+
+import com.example.jwtsecurity2.dto.request.ProductRequest;
+import com.example.jwtsecurity2.dto.response.ProductProjection;
 import com.example.jwtsecurity2.entity.Product;
 import com.example.jwtsecurity2.repository.ProductRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 public class AdminUsers {
 
@@ -21,13 +25,13 @@ public class AdminUsers {
     private ProductRepo productRepo;
 
     @GetMapping("/public/product")
-    public ResponseEntity<Object> getAllProducts(){
-        return ResponseEntity.ok(productRepo.findAll());
+    public List<ProductProjection> getAllProducts(){
+        return productRepo.findAllProjectedBy();
     }
 
     @PreAuthorize("hasRole('MODERATOR')")
     @PostMapping("/moderator/saveproduct")
-    public ResponseEntity<Object> signUp(@RequestBody ReqRes productRequest){
+    public ResponseEntity<Object> saveProduct(@RequestBody ProductRequest productRequest){
         Product productToSave = new Product();
         productToSave.setName(productRequest.getName());
         return ResponseEntity.ok(productRepo.save(productToSave));
